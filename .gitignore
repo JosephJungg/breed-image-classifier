@@ -219,3 +219,5 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 data/
+.DS_Store
+.DS_Store what does this do
