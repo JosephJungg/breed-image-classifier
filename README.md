@@ -21,6 +21,40 @@ larger, so its estimate is more precise.
 Evaluating run 7 at higher input resolutions (crops of 256, 288 and 352) did not clearly
 improve validation accuracy, so the final evaluation uses 224.
 
+On the test set (about 100 images per breed), the largest confusion is American Pit Bull
+Terrier ↔ Staffordshire Bull Terrier (23 + 14 mistakes; Pit Bull accuracy 0.61). With only
+about 20 validation images per breed, this pair never stood out during model selection.
+Next are Birman ↔ Ragdoll (14 + 9), Abyssinian → Bengal (11) and Maine Coon → Ragdoll (11).
+
+## Usage
+
+The code lives in `src/`; `notebooks/explore1.ipynb` holds the original exploration.
+
+```bash
+# reproduce the final model (run 7)
+python -m src.train --arch resnet50 --stage probe --epochs 5 --name resnet50_linear_probe
+python -m src.train --arch resnet50 --stage finetune --init data/resnet50_linear_probe.pt \
+    --lr-layer4 1e-5 --epochs 10 --name resnet50_ft_layer4_lr1e-5
+
+# score a checkpoint and print the error analysis (val by default; test only once, at the end)
+python -m src.evaluate --checkpoint data/resnet50_ft_layer4_lr1e-5.pt --split val
+
+# tests
+python -m pytest
+```
+
+Training checks the train/val split before it starts and saves the best epoch to
+`data/<name>.pt`. Each epoch is logged to `runs/<name>.csv`, and each run adds a summary
+row with its full configuration to `runs/runs.csv`.
+
+| Module | Contents |
+|---|---|
+| `src/data.py` | Transforms, dataset loading, the stratified split and its validity check |
+| `src/model.py` | ResNet-18/50 with a 37-class head, freezing and BatchNorm mode helpers |
+| `src/engine.py` | Training and evaluation loops, prediction collection |
+| `src/analysis.py` | Per-breed accuracy, confused pairs, cat/dog mix-ups |
+| `src/train.py`, `src/evaluate.py` | Command-line entry points |
+
 ## Results
 
 Validation accuracy on the 736-image validation split. One image is about 0.14%, so
