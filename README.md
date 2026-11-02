@@ -1,3 +1,72 @@
 # image-ml
 
-https://www.robots.ox.ac.uk/~vgg/data/pets/
+Breed classification (37 cat and dog breeds) on the
+[Oxford-IIIT Pet dataset](https://www.robots.ox.ac.uk/~vgg/data/pets/).
+
+## Data split
+
+The official `trainval` split is divided 80/20, stratified by breed (`random_state=42`):
+2,944 train and 736 validation images. The official `test` split is held out for a
+single final evaluation.
+
+## Results
+
+Validation accuracy on the 736-image validation split. One image is about 0.14%, so
+differences under about 0.5% are within noise.
+
+| # | Model | Trained layers | Epochs | Optimizer | Val loss | Val acc | Mistakes |
+|---|---|---|---|---|---|---|---|
+| 1 | ResNet-18 (ImageNet), linear probe | Final layer only | 5 | Adam, lr 1e-3 | 0.316 | 91.7% | 61 |
+| 2 | Run 1, then fine-tune `layer4` | `layer4` + final layer | 10 (best: 10) | Adam, lr 1e-4 (`layer4`) / 1e-3 (final) | 0.295 | 92.3%* | 57 |
+| 3 | Run 2 + rotation (±12°), brightness/contrast jitter (0.2) | `layer4` + final layer | 10 (best: 4) | Adam, lr 1e-4 (`layer4`) / 1e-3 (final) | 0.288 | 91.8%* | 60 |
+| 4 | Run 3 with lower `layer4` learning rate | `layer4` + final layer | 10 (best: 5) | Adam, lr 1e-5 (`layer4`) / 1e-3 (final) | 0.263 | 92.3%* | 57 |
+
+\* Best of 10 epochs, so slightly optimistic. Run 2's val accuracy ranged 90.4–92.3% across
+epochs. Run 3 was trained twice with the same setup: best 91.7% and 91.8%, with epoch 10 at
+89.3% and 90.8%. So run-to-run noise is about 1.5% at a given epoch, and runs 1–3 are within
+noise of each other.
+
+## Error analysis
+
+### Run 1: linear probe
+
+- Weakest breeds are mostly cats: British Shorthair 0.65, Abyssinian 0.70, Ragdoll 0.70.
+  ImageNet has about 120 dog breeds but only about 5 cat classes, so the frozen features
+  separate cat breeds less well.
+- Top confusions are look-alikes: British Shorthair ↔ Russian Blue (8), Ragdoll → Birman (4),
+  Abyssinian → Bengal (3), Bengal → Egyptian Mau (3), Boxer → American Bulldog (3).
+- 1 cat/dog mix-up.
+
+### Run 2: fine-tuned `layer4`
+
+- Clear overfitting: train accuracy reached 99.5% while val stayed around 91–92% and val
+  loss stayed flat (0.26–0.32). With about 80 training images per breed, `layer4`'s 8.4M
+  weights memorize training photos.
+- British Shorthair ↔ Russian Blue dropped from 8 to at most 4; British Shorthair rose from
+  0.65 to at least 0.90.
+- Errors shifted to colorpoint cats: Ragdoll → Birman (5), Siamese → Birman (2),
+  Maine Coon → Ragdoll (2). Siamese fell to 0.80.
+- Cat/dog mix-ups rose from 1 to 3.
+- Net effect: 61 → 57 mistakes, about the same as the linear probe.
+
+### Run 3: fine-tuned `layer4` with extra augmentation
+
+- Augmentation slowed memorization (final train loss 0.040 vs 0.018) but train accuracy
+  still reached 99%, and val loss drifted upward after epoch 2.
+- Errors are more evenly spread: no breed below 0.80 (runs 1–2 had breeds at 0.65–0.70).
+- Ragdoll ↔ Birman is now the largest confusion and goes both ways (4 + 3). Birmans'
+  white paws may be cropped out or too small at 224×224.
+- Boxer ↔ American Bulldog is also two-way (3 + 2). British Shorthair ↔ Russian Blue stayed
+  improved (at most 5, vs 8 in run 1). Cat/dog mix-ups: 3.
+- Net effect: 60 mistakes. Augmentation changed which images are wrong, not how many.
+
+### Run 4: run 3 with `layer4` learning rate 1e-5
+
+- Memorization slowed: train accuracy reached only 97.4% by epoch 10 (99% by epoch 6 in
+  run 3). Val loss fell steadily to 0.249 and did not drift upward, the best of any run.
+- Val accuracy did not improve beyond noise (90.9–92.3% over epochs 5–10).
+- Most evenly spread errors so far: the worst breed is 0.84, and no confusion pair exceeds 3.
+- Ragdoll ↔ Birman fell to 5 (3 + 2) from 7 in run 3. British Shorthair → Russian Blue: 3.
+- Cat/dog mix-ups: 4, including Shiba Inu → Abyssinian (2), which share a reddish, fox-like look.
+- Net effect: 57 mistakes. Runs 1–4 all land around 91–92%, which suggests a ceiling for
+  ResNet-18 at 224×224 with about 80 training images per breed.
