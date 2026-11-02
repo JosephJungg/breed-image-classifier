@@ -20,11 +20,18 @@ differences under about 0.5% are within noise.
 | 2 | Run 1, then fine-tune `layer4` | `layer4` + final layer | 10 (best: 10) | Adam, lr 1e-4 (`layer4`) / 1e-3 (final) | 0.295 | 92.3%* | 57 |
 | 3 | Run 2 + rotation (±12°), brightness/contrast jitter (0.2) | `layer4` + final layer | 10 (best: 4) | Adam, lr 1e-4 (`layer4`) / 1e-3 (final) | 0.288 | 91.8%* | 60 |
 | 4 | Run 3 with lower `layer4` learning rate | `layer4` + final layer | 10 (best: 5) | Adam, lr 1e-5 (`layer4`) / 1e-3 (final) | 0.263 | 92.3%* | 57 |
+| 5 | ResNet-50 (ImageNet), linear probe† | Final layer only | 5 | Adam, lr 1e-3 | 0.287 | 95.1% | 36 |
+| 6 | Run 5, then fine-tune `layer4` (run 4 settings) | `layer4` + final layer | 10 (best: 8) | Adam, lr 1e-5 (`layer4`) / 1e-3 (final) | 0.178 | 94.8%* | 38 |
+| 7 | Run 6 with original augmentation (no rotation or jitter) | `layer4` + final layer | 10 (best: 10) | Adam, lr 1e-5 (`layer4`) / 1e-3 (final) | 0.174 | 95.4%* | 34 |
 
 \* Best of 10 epochs, so slightly optimistic. Run 2's val accuracy ranged 90.4–92.3% across
 epochs. Run 3 was trained twice with the same setup: best 91.7% and 91.8%, with epoch 10 at
 89.3% and 90.8%. So run-to-run noise is about 1.5% at a given epoch, and runs 1–3 are within
 noise of each other.
+
+† Run 5 used run 3's augmentation (rotation and jitter), while run 1 used the original, so
+runs 1 and 5 differ in both backbone and augmentation. The backbone likely explains most of
+the +3.4%.
 
 ## Error analysis
 
@@ -70,3 +77,37 @@ noise of each other.
 - Cat/dog mix-ups: 4, including Shiba Inu → Abyssinian (2), which share a reddish, fox-like look.
 - Net effect: 57 mistakes. Runs 1–4 all land around 91–92%, which suggests a ceiling for
   ResNet-18 at 224×224 with about 80 training images per breed.
+
+### Run 5: ResNet-50 linear probe
+
+- 95.1% val accuracy, about 25 fewer mistakes than run 1: the first change clearly beyond
+  noise. Val accuracy and loss were still improving at epoch 5.
+- Small train/val gap (96.7% vs 95.1%).
+- Breed-level error analysis: pending.
+
+### Run 6: ResNet-50 fine-tuned `layer4`
+
+- No accuracy gain over run 5 (94.8%, best of 10, vs 95.1%), but much lower val loss
+  (0.178 at the best epoch, lowest 0.173, vs 0.287): more confident when right, less
+  confidently wrong.
+- Still memorizes: train accuracy reached 99.5% even at lr 1e-5 (`layer4` has about 15M
+  weights). Val accuracy dipped to 93.3% in epoch 1 before recovering.
+- First run with 0 cat/dog mix-ups.
+- The same hard pairs persist with fewer mistakes: Ragdoll → Birman (4),
+  British Shorthair → Russian Blue (4), Abyssinian → Bengal (3), Boxer → American Bulldog (3).
+- Bengal absorbs errors from Abyssinian (3), Maine Coon (2) and Egyptian Mau (2).
+- Beagle / Basset Hound flipped direction: Basset Hound → Beagle (3).
+- Net effect: 38 mistakes. Across both backbones, fine-tuning `layer4` improves confidence
+  but not accuracy with about 80 images per breed.
+
+### Run 7: run 6 with the original augmentation
+
+- Same starting probe and settings as run 6; only the augmentation differs.
+- Highest score so far (95.4%, 34 mistakes), but +0.6% over run 6 is within noise.
+- Slightly more memorization without rotation and jitter (train 99.7% vs 99.0%), with no
+  cost on validation. Val loss about the same (0.174 vs 0.178).
+- Errors into Bengal fell from 7 to 2 (only Egyptian Mau → Bengal remains). Hypothesis:
+  brightness/contrast jitter blurs coat-pattern cues between tabby breeds. Needs a repeat
+  run to confirm.
+- Hard pairs are all small: British Shorthair ↔ Russian Blue (3 + 2), Ragdoll ↔ Birman
+  (2 + 2), Boxer → American Bulldog (3). Cat/dog mix-ups: 0.
