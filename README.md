@@ -9,6 +9,18 @@ The official `trainval` split is divided 80/20, stratified by breed (`random_sta
 2,944 train and 736 validation images. The official `test` split is held out for a
 single final evaluation.
 
+## Final result
+
+**92.5% test accuracy** (274 mistakes out of 3,669; test loss 0.267) with ResNet-50,
+`layer4` fine-tuned (run 7), evaluated once on the official test split at 224×224.
+
+The test score is 2.9% below run 7's validation score (95.4%). Run 7 was chosen as the best
+of many noisy validation scores, which builds in some luck. The test set is also five times
+larger, so its estimate is more precise.
+
+Evaluating run 7 at higher input resolutions (crops of 256, 288 and 352) did not clearly
+improve validation accuracy, so the final evaluation uses 224.
+
 ## Results
 
 Validation accuracy on the 736-image validation split. One image is about 0.14%, so
