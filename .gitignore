@@ -221,3 +221,6 @@ __marimo__/
 data/
 .DS_Store
 .DS_Store what does this do
+
+# app prediction logs
+logs/

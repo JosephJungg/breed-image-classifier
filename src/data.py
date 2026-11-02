@@ -17,6 +17,16 @@ IMAGENET_STD  = [0.229, 0.224, 0.225]
 
 NUM_CLASSES = 37
 
+# label order of torchvision's OxfordIIITPet, so inference does not need the dataset on disk
+CLASSES = ["Abyssinian", "American Bulldog", "American Pit Bull Terrier", "Basset Hound",
+           "Beagle", "Bengal", "Birman", "Bombay", "Boxer", "British Shorthair", "Chihuahua",
+           "Egyptian Mau", "English Cocker Spaniel", "English Setter", "German Shorthaired",
+           "Great Pyrenees", "Havanese", "Japanese Chin", "Keeshond", "Leonberger",
+           "Maine Coon", "Miniature Pinscher", "Newfoundland", "Persian", "Pomeranian", "Pug",
+           "Ragdoll", "Russian Blue", "Saint Bernard", "Samoyed", "Scottish Terrier",
+           "Shiba Inu", "Siamese", "Sphynx", "Staffordshire Bull Terrier", "Wheaten Terrier",
+           "Yorkshire Terrier"]
+
 CATS = {"Abyssinian", "Bengal", "Birman", "Bombay", "British Shorthair", "Egyptian Mau",
         "Maine Coon", "Persian", "Ragdoll", "Russian Blue", "Siamese", "Sphynx"}
 

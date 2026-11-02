@@ -43,6 +43,23 @@ python -m src.evaluate --checkpoint data/resnet50_ft_layer4_lr1e-5.pt --split va
 python -m pytest
 ```
 
+### Demo app
+
+```bash
+python app.py     # then open http://127.0.0.1:7860
+```
+
+Upload a cat or dog photo to see the top 3 breeds. The app uses the run 7 checkpoint
+(override with `MODEL_CHECKPOINT`) and the same preprocessing as evaluation. When the top
+probability is below 0.7 it says it is not sure: on the validation set that flags 5.6% of
+images, which are right only 66% of the time, versus 97% above the threshold. Each
+prediction is logged to `logs/predictions.csv` (breeds, probabilities, timing). Uploaded
+images are never stored, and Gradio's flagging is turned off for that reason.
+
+Known limitation: the model only knows the 37 breeds and maps anything else to one of
+them, often confidently. A blank grey image is predicted as a Bombay cat at 88%. The
+confidence threshold catches uncertain pet photos, not inputs that aren't pets.
+
 Training checks the train/val split before it starts and saves the best epoch to
 `data/<name>.pt`. Each epoch is logged to `runs/<name>.csv`, and each run adds a summary
 row with its full configuration to `runs/runs.csv`.
@@ -53,6 +70,8 @@ row with its full configuration to `runs/runs.csv`.
 | `src/model.py` | ResNet-18/50 with a 37-class head, freezing and BatchNorm mode helpers |
 | `src/engine.py` | Training and evaluation loops, prediction collection |
 | `src/analysis.py` | Per-breed accuracy, confused pairs, cat/dog mix-ups |
+| `src/predict.py` | Single-image prediction with top 3 breeds and the confidence threshold |
+| `app.py` | Gradio demo app |
 | `src/train.py`, `src/evaluate.py` | Command-line entry points |
 
 ## Results
