@@ -50,9 +50,3 @@ Possible extensions, recorded 2026-11-02. None are started.
 - Repeat run 7 to test the hypothesis that brightness/contrast jitter blurs tabby coat
   patterns (errors into Bengal fell from 7 to 2 without it).
 - Fill in run 5's breed-level error analysis in the README.
-
-## Fit with roles applied to
-
-- Northwood (supply chain analytics): pipelines, data validation and quality checks.
-- Micron (HBM data scientist): AI agents, RAG, evaluating models against known outcomes.
-- Toshiba (data science and analytics): data pipelines, repeatable analysis.
