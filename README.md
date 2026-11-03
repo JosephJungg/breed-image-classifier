@@ -1,4 +1,4 @@
-# image-ml
+# Breed Image Classifier
 
 Breed classification (37 cat and dog breeds) on the
 [Oxford-IIIT Pet dataset](https://www.robots.ox.ac.uk/~vgg/data/pets/).
