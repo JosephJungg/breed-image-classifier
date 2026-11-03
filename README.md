@@ -74,11 +74,6 @@ row with its full configuration to `runs/runs.csv`.
 | `app.py` | Gradio demo app |
 | `src/train.py`, `src/evaluate.py` | Command-line entry points |
 
-## Future work
-
-Planned extensions (data catalog and validation, cloud storage, vector search with non-pet
-detection, RAG) are listed in [ROADMAP.md](ROADMAP.md).
-
 ## Results
 
 Validation accuracy on the 736-image validation split. One image is about 0.14%, so
@@ -181,3 +176,8 @@ the +3.4%.
   run to confirm.
 - Hard pairs are all small: British Shorthair ↔ Russian Blue (3 + 2), Ragdoll ↔ Birman
   (2 + 2), Boxer → American Bulldog (3). Cat/dog mix-ups: 0.
+
+## Future work
+
+Planned extensions (data catalog and validation, cloud storage, vector search with non-pet
+detection, RAG) are listed in [ROADMAP.md](ROADMAP.md).
